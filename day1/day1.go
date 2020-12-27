@@ -35,20 +35,20 @@ func part2(numbers []int) (mult int, err error) {
 }
 
 var part func([]int) (int, error)
+var usePart2 bool
 
 func init() {
-	var usePart2 bool
 	flag.BoolVar(&usePart2, "2", false, "Run part 2")
-	flag.Parse()
+}
 
+func main() {
+	flag.Parse()
 	if usePart2 {
 		part = part2
 	} else {
 		part = part1
 	}
-}
 
-func main() {
 	var numbers []int
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {

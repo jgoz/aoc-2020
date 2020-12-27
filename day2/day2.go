@@ -70,20 +70,20 @@ func part2(lines []string) (valid int, err error) {
 }
 
 var part func([]string) (int, error)
+var usePart2 bool
 
 func init() {
-	var usePart2 bool
 	flag.BoolVar(&usePart2, "2", false, "Run part 2")
-	flag.Parse()
+}
 
+func main() {
+	flag.Parse()
 	if usePart2 {
 		part = part2
 	} else {
 		part = part1
 	}
-}
 
-func main() {
 	var lines []string
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
