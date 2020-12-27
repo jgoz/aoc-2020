@@ -1,15 +1,21 @@
-gos = $(wildcard */*.go)
-tests = $(wildcard */*_test.go)
-days = $(patsubst %.go,%,$(filter-out $(tests),$(gos)))
+days = $(wildcard day*)
+bins = $(addprefix bin/,$(notdir $(days)))
 
-$(days): %: %.go
-	go build -o bin/$(notdir $@) $<
+# Search in day* folders for .go files
+vpath %.go $(days)
 
-all: $(days)
+# Actual binary targets (bin/day1, bin/day2, etc)
+$(bins): bin/%: %.go
+	go build -o $@ $<
 
-debug:
-	$(info $$days is [${days}])
+# Aliases (`make day1` -> `make bin/day1`)
+.PHONY: $(days)
+$(days): %: bin/%
 
+.PHONY: clean
 clean:
 	go clean
 	rm bin/*
+
+.PHONY: all
+all: $(bins)
