@@ -34,11 +34,21 @@ func part2(numbers []int) (mult int, err error) {
 	return -1, errors.New("expenseReport: unable to find three numbers that add to 2020")
 }
 
-func main() {
+var part func([]int) (int, error)
+
+func init() {
 	var usePart2 bool
 	flag.BoolVar(&usePart2, "2", false, "Run part 2")
 	flag.Parse()
 
+	if usePart2 {
+		part = part2
+	} else {
+		part = part1
+	}
+}
+
+func main() {
 	var numbers []int
 	scanner := bufio.NewScanner(os.Stdin)
 	for scanner.Scan() {
@@ -51,17 +61,11 @@ func main() {
 
 	if err := scanner.Err(); err != nil {
 		log.Fatal(err)
-	} else {
-		var mult int
-		var err error
-		if usePart2 {
-			mult, err = part2(numbers)
-		} else {
-			mult, err = part1(numbers)
-		}
-		if err != nil {
-			log.Fatal(err)
-		}
-		fmt.Println(mult)
 	}
+
+	mult, err := part(numbers)
+	if err != nil {
+		log.Fatal(err)
+	}
+	fmt.Println(mult)
 }
