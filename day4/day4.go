@@ -27,7 +27,8 @@ var requiredKeys = []string{
 	"hgt",
 	"hcl",
 	"ecl",
-	"pid"}
+	"pid",
+}
 
 type passport map[string]string
 

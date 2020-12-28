@@ -12,7 +12,8 @@ func TestPart1(t *testing.T) {
 		366,
 		299,
 		675,
-		1456}
+		1456,
+	}
 
 	mult, err := part1(input)
 
