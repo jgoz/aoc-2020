@@ -8,6 +8,7 @@ import (
 	"os"
 	"sort"
 	"strconv"
+	"strings"
 )
 
 func makeAdapters(numbers []int) (jolts []int) {
@@ -16,38 +17,6 @@ func makeAdapters(numbers []int) (jolts []int) {
 	sort.Ints(jolts)
 	jolts = append(jolts, jolts[len(jolts)-1]+3)
 	return jolts
-}
-
-type Chain []int
-type Chains []Chain
-
-func valid(chain Chain) bool {
-	for i := 1; i < len(chain); i++ {
-		if chain[i]-chain[i-1] > 3 {
-			return false
-		}
-	}
-	return true
-}
-
-func exhaust(chain Chain, seen map[int]bool) (possible int) {
-	possible = 1
-	for i := 1; i < len(chain)-1; i++ {
-		candidate := make([]int, len(chain)-1)
-		copy(candidate[:i], chain[:i])
-		copy(candidate[i:], chain[i+1:])
-
-		var hash int
-		for _, n := range candidate {
-			hash = hash ^ (n + 1) // this is sketchy but it works for the input /shrug
-		}
-
-		if valid(candidate) && !seen[hash] {
-			seen[hash] = true
-			possible += exhaust(candidate, seen)
-		}
-	}
-	return possible
 }
 
 func part1(numbers []int) (product int) {
@@ -66,28 +35,86 @@ func part1(numbers []int) (product int) {
 	return ones * threes
 }
 
+// A Chain represents a string of adapters that are exactly one jolt apart.
+type Chain struct {
+	length int
+	hash   string
+	values []int
+}
+
+func (chain Chain) String() string {
+	return chain.hash
+}
+
+// Without removes the value at the given index and returns a new Chain.
+func (chain *Chain) Without(index int) Chain {
+	values := make([]int, chain.length-1)
+	copy(values[:index], chain.values[:index])
+	copy(values[index:], chain.values[index+1:])
+	return makeChain(values)
+}
+
+// IsValid returns true if the chain is a contiguous set of increasing values.
+func (chain *Chain) IsValid() bool {
+	for i := 1; i < chain.length; i++ {
+		if chain.values[i]-chain.values[i-1] > 3 {
+			return false
+		}
+	}
+	return true
+}
+
+func makeChain(values []int) (chain Chain) {
+	var strs []string
+	for _, num := range values {
+		strs = append(strs, strconv.Itoa(num))
+	}
+	hash := strings.Join(strs, ",")
+	length := len(values)
+	return Chain{length, hash, values}
+}
+
+// exhaust recursively removes inner values of a chain and returns
+// the number of valid alternative chains.
+func exhaust(chain *Chain, seen map[string]bool) (possible int) {
+	possible = 1
+	for i := 1; i < chain.length-1; i++ {
+		candidate := chain.Without(i)
+
+		if candidate.IsValid() && !seen[candidate.hash] {
+			seen[candidate.hash] = true
+			possible += exhaust(&candidate, seen)
+		}
+	}
+	return possible
+}
+
 func part2(numbers []int) (possible int) {
-	var chains Chains
+	var chains []Chain
+	var values []int
 	jolts := makeAdapters(numbers)
 
 	for i, j := 0, 1; j < len(jolts); j++ {
 		prev, cur := jolts[j-1], jolts[j]
 
-		if len(chains) == i {
-			chains = append(chains, make(Chain, 0))
-		}
-
-		chains[i] = append(chains[i], prev)
+		values = append(values, prev)
 		if cur-prev == 3 {
 			i++
+			chains = append(chains, makeChain(values))
+			values = make([]int, 0)
 		}
 	}
 
 	possible = 1
+	cache := make(map[int]int, 0)
 	for _, chain := range chains {
-		possible *= exhaust(chain, make(map[int]bool))
+		p, ok := cache[chain.length]
+		if !ok {
+			p = exhaust(&chain, make(map[string]bool))
+			cache[chain.length] = p
+		}
+		possible *= p
 	}
-
 	return
 }
 
