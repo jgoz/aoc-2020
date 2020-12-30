@@ -17,13 +17,6 @@ func abs(x int) int {
 	return x
 }
 
-func sign(x int) int {
-	if x < 0 {
-		return -1
-	}
-	return 1
-}
-
 // Pos contains an x, y position or offset.
 type Pos struct {
 	x int
